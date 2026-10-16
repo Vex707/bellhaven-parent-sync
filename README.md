@@ -11,6 +11,19 @@ CRM API ──read────▶ accounts ──┘                            
           contacts
 ```
 
+## Results
+
+All 35 proposals were reviewed and approved, and each was verified as applied in the CRM.
+
+| | Before | After |
+|---|---|---|
+| CRM accounts | 121 | 127 (4 new communities + 2 CHOW successors) |
+| Website communities fully in sync (right parent, name, address, phone) | 10 of 35 | 35 of 35 |
+| Communities under the right parent | 25 of 35 | 35 of 35 |
+| Pipeline re-run | 35 proposals | 0 proposals (all confident matches) |
+
+The full writeup is in [WRITEUP.md](WRITEUP.md).
+
 ## Running it
 
 ```bash
