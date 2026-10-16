@@ -1,0 +1,57 @@
+# Daily Bellhaven parent-link sync.
+# Scrapes the website, reads the CRM, and queues NEW proposals only. It never writes to the CRM:
+# writes happen solely when a reviewer approves a proposal in the review app.
+#
+# State (data/state.db) is what makes re-runs safe: every proposal key ever produced, and its
+# decision, lives there. Here it is carried between runs with actions/cache; in production it
+# would live in a shared database that the review app also reads.
+name: daily-bellhaven-sync
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # 11:00 UTC = 6-7am US Eastern, so the queue is fresh at start of day
+  workflow_dispatch: {}
+
+concurrency:
+  group: bellhaven-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Restore proposal state
+        uses: actions/cache/restore@v4
+        with:
+          path: data/state.db
+          key: bellhaven-state-${{ github.run_id }}
+          restore-keys: bellhaven-state-
+
+      - name: Run pipeline (proposals only)
+        env:
+          BELLHAVEN_TOKEN: ${{ secrets.BELLHAVEN_TOKEN }}
+        run: python -m bellhaven_sync.pipeline | tee run-summary.json
+
+      - name: Save proposal state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/state.db
+          key: bellhaven-state-${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: run-summary
+          path: |
+            run-summary.json
+            data/last_scrape.json

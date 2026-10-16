@@ -1,0 +1,3 @@
+# Alternative to the GitHub Actions workflow: run on the reviewer's machine / a small VM.
+# Daily at 06:00 local time. Proposals only; the CRM is written solely from the review app.
+0 6 * * * cd /opt/bellhaven-sync && .venv/bin/python -m bellhaven_sync.pipeline >> data/cron.log 2>&1
